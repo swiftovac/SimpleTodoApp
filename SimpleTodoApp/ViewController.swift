@@ -33,8 +33,20 @@ class ViewController: UITableViewController {
         ac.addAction(UIAlertAction(title: "Add todo", style: .default){ [weak self, weak ac]_ in
             
             guard let text = ac?.textFields?[0].text else {return}
-            self?.saveTodo(text: text)
+           
+            let newTodo = Todo(title: text, completed: false)
+            self?.todos.append(newTodo)
             
+            let jsonEncoder = JSONEncoder()
+            if let savedData = try? jsonEncoder.encode(self?.todos) {
+                let defaults = UserDefaults.standard
+                
+                defaults.set(savedData, forKey: "todo")
+                print("Sacuvano")
+            }
+            
+            
+            self?.tableView.reloadData()
             
             
             
@@ -48,26 +60,26 @@ class ViewController: UITableViewController {
     }
     
     
-    func saveTodo(text: String) {
-
-        let newTodo = Todo(title: text, completed: false)
-        todos.append(newTodo)
+    func editToDo(todo: Todo) {
+        
+        if todo.completed == false {
+            todo.completed = true
+        }else if todo.completed == true {
+            todo.completed = false
+        }
         
         let jsonEncoder = JSONEncoder()
-        if let savedData = try? jsonEncoder.encode(todos) {
+        
+        if let savedData = try? jsonEncoder.encode(todos){
             let defaults = UserDefaults.standard
-            
             defaults.set(savedData, forKey: "todo")
         }
         
-        
         tableView.reloadData()
-        
-        
-        
-        
-        
     }
+    
+    
+   
     
 
     
@@ -96,6 +108,13 @@ class ViewController: UITableViewController {
         return todos.count
     }
     
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        var selectedTodo = todos[indexPath.row]
+        
+        editToDo(todo: selectedTodo)
+        
+    }
    
     
     
@@ -105,6 +124,11 @@ class ViewController: UITableViewController {
         let todo = todos[indexPath.row]
         cell.textLabel?.text = todo.title
         
+        if todo.completed {
+            cell.accessoryType = .checkmark
+        }else if !todo.completed {
+            cell.accessoryType = .none
+        }
        
         
         return cell
